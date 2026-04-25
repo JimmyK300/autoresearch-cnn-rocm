@@ -1,0 +1,7 @@
+# Override settings to simulate writer bias experiments
+training:
+  epochs: 20
+  batch_size: 32
+
+bias:
+  writer_strength: 0.5
