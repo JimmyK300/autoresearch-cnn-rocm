@@ -1,13 +1,8 @@
-import torch
+#!/usr/bin/env python3
+"""Check PyTorch device visibility for CPU/CUDA/ROCm environments."""
 
-print("torch:", torch.__version__)
-print("cuda available:", torch.cuda.is_available())
-print("hip version:", getattr(torch.version, "hip", None))
+from mnist_cnn.cli import check_device
 
-if torch.cuda.is_available():
-    print("device:", torch.cuda.get_device_name(0))
-    x = torch.randn(1024, 1024, device="cuda")
-    y = x @ x
-    print("matmul ok:", y.mean().item())
-else:
-    raise SystemExit("No ROCm/AMD GPU detected by PyTorch.")
+
+if __name__ == "__main__":
+    check_device()

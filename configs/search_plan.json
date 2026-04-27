@@ -1,0 +1,17 @@
+[
+  {
+    "key": "training.learning_rate",
+    "candidates": ["0.0007", "0.0009"],
+    "reason": "Small learning-rate moves test optimizer stability without changing the model."
+  },
+  {
+    "key": "training.batch_size",
+    "candidates": ["56", "80"],
+    "reason": "Batch size changes are a low-risk way to probe generalization and runtime."
+  },
+  {
+    "key": "training.epochs",
+    "candidates": ["8"],
+    "reason": "One extra epoch checks whether validation loss still improves after the baseline."
+  }
+]

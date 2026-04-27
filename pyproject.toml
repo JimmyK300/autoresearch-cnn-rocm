@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mnist-cnn-artifact"
+version = "0.1.0"
+description = "Config-driven MNIST CNN experiments with simple run tracking."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "python-mnist",
+  "torch",
+  "tqdm",
+]
+
+[project.scripts]
+mnist-cnn = "mnist_cnn.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mnist_cnn*"]

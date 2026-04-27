@@ -1,72 +1,95 @@
-﻿# autoresearch-cnn-rocm
+# autoresearch-cnn-rocm
 
-Start with standard MNIST accuracy first. Do not jump into writer-bias research until the plain CNN baseline is training and evaluating cleanly.
+Config-driven MNIST CNN experiments with simple run tracking and agent-friendly commands.
 
-Inherit from Karpathy Auto-research:
-prepare.py  = stable data prep, not edited by agent
-train.py    = agent-editable experiment surface
-program.md  = human-written research instructions
-metrics.py  = fixed scoring logic, not casually edited
+The current `main` branch is intentionally narrow: train and evaluate a CNN on MNIST, record each run, and make small config sweeps easy to repeat. ROCm support is a later differentiator; for now the code uses PyTorch's normal `torch.cuda` check when a GPU is available and otherwise runs on CPU.
 
-## Repo phases
+## Why This Shape
 
-Phase 1: minimal baseline
+The repo is designed so humans and AI agents mostly edit configuration instead of rewriting training code. The core Python package owns data loading, model construction, metrics, run tracking, and sweeps. PowerShell and Bash scripts stay available as thin convenience wrappers.
 
-- train a simple MNIST CNN
-- report train accuracy, validation accuracy, and validation loss
-- make the run stable on AMD ROCm
+## Install
 
-Phase 2: writer-bias research
-
-- add writer-aware metrics
-- optimize accuracy and fairness together
-- keep experiment logs and acceptance criteria
-
-If you are still getting the first model to run, stay in Phase 1.
-
-## ROCm quick check
-
-This repo targets AMD GPUs through PyTorch ROCm. Even on AMD, PyTorch typically exposes the device through the `torch.cuda` namespace.
-
-Verify the environment before tuning:
+Use an environment with PyTorch and the MNIST `samples/` files available locally.
 
 ```powershell
-pyww scripts/check_rocm.py
+py -m pip install -e .
 ```
 
-What you want to see:
+The raw MNIST files are expected in `samples/`:
 
-- `cuda available: True`
-- a non-empty device name
-- `matmul ok: ...`
+```text
+samples/
+  train-images-idx3-ubyte
+  train-labels-idx1-ubyte
+  t10k-images-idx3-ubyte
+  t10k-labels-idx1-ubyte
+```
 
-If that script fails, fix the ROCm/PyTorch environment first. Model tuning is wasted effort until this passes.
+## Commands
 
-## ROCm container
-
-Recommended docker command:
+Train the baseline config:
 
 ```powershell
-docker run -it `
-  --cap-add=SYS_PTRACE `
-  --security-opt seccomp=unconfined `
-  --device=/dev/kfd `
-  --device=/dev/dri `
-  --group-add video `
-  --ipc=host `
-  --shm-size 8G `
-  -v "${PWD}:/workspace" `
-  -w /workspace `
-  rocm/pytorch:latest
+py train.py --config configs/default.yaml
 ```
 
-## Practical baseline target
+Or use the package command:
 
-For the first successful run, aim for:
+```powershell
+py -m mnist_cnn train --config configs/default.yaml
+```
 
-- model trains for a few epochs without crashing
-- validation loss goes down
-- validation accuracy is reported every run
-- the script exits cleanly with a summary
+Show the latest run:
 
-Only after that should you start adding writer metrics or fairness-driven search logic.
+```powershell
+py evaluate.py --run latest
+```
+
+Show the current best run:
+
+```powershell
+py -m mnist_cnn evaluate --run best
+```
+
+Run a config sweep:
+
+```powershell
+py -m mnist_cnn sweep --config configs/default.yaml --search-plan configs/search_plan.json
+```
+
+Check PyTorch device visibility:
+
+```powershell
+py -m mnist_cnn check-device
+```
+
+Existing wrappers remain available:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_agent_loop.ps1
+powershell -ExecutionPolicy Bypass -File scripts/auto_sweep.ps1
+```
+
+## Project Layout
+
+- `mnist_cnn/`: shared implementation for config, data, model, training, evaluation, runs, and sweeps.
+- `train.py`: familiar training entrypoint.
+- `evaluate.py`: familiar saved-run reporting entrypoint.
+- `prepare.py`: local MNIST sample loader check.
+- `metrics.py`: public metric helpers.
+- `configs/default.yaml`: baseline CNN/training configuration.
+- `configs/search_plan.json`: small sweep candidates.
+- `scripts/`: shell and PowerShell convenience wrappers.
+
+Generated outputs such as `results/`, `best_run.json`, `research_log.md`, `weights/`, and submission packages are local artifacts and are ignored on `main`.
+
+## Optimization Target
+
+The default comparison objective is:
+
+```text
+geometric_mean_loss = sqrt(train_loss * val_loss)
+```
+
+Lower is better. Ties are resolved by lower validation loss, then higher validation accuracy, then shorter training time.

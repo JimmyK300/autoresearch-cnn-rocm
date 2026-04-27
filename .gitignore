@@ -1,25 +1,43 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.egg-info/
 build/
 dist/
 wheels/
-*.egg-info
 
 # Virtual environments
-.venv
-worktrees/
-results/
-queue/
+.venv/
+venv/
 
-# Agent prompt files (generated per-session by launchers)
+# Local datasets
+samples/
+data/
+
+# Run outputs and generated experiment artifacts
+results/
+past_runs/
+submission_ready/
+weights/
+epochs=*/
+best_run.json
+research_log.md
+*.pth
+*.pt
+results.tsv
+
+# Local experiment scratch files
+configs/original.yaml
+configs/search_plan_refine.json
+configs/last_run.json
+scripts/build_*_package.py
+scripts/regenerate_weights_from_results.py
+
+# Agent prompt files generated per session
 CLAUDE.md
 AGENTS.md
 
-# Experimental code/artifacts
+# Development scratch
 dev/
-
-# Results file
-results.tsv
-
-/samples
+worktrees/
+queue/

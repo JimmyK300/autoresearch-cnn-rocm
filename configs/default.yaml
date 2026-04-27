@@ -1,12 +1,21 @@
 model:
-  name: cnn
-  input_shape: [1, 28, 28]
+  in_channels: 1
+  conv_channels: [32, 32]
+  kernel_sizes: [5, 5]
+  paddings: [2, 1]
+  hidden_dims: [128, 32]
+  num_classes: 10
 
 training:
-  epochs: 10
   batch_size: 64
-  lr: 0.001
+  learning_rate: 0.0008
+  epochs: 7
+  seed: 42
 
 data:
-  raw_dir: data/raw
-  processed_dir: data/processed
+  samples_dir: samples
+
+artifacts:
+  results_dir: results
+  best_run_path: best_run.json
+  research_log_path: research_log.md
